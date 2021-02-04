@@ -1,5 +1,6 @@
 package com.maintenance.web;
 
+import com.maintenance.web.rpc.IRpcManageService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,8 @@ import java.util.List;
 @Data
 @Component
 public class DataBus {
+    @Autowired
+    private IRpcManageService iRpcManageService;
 //    /** 对接缓存 **/
 //    @Autowired
 //    private RedisService redisService;

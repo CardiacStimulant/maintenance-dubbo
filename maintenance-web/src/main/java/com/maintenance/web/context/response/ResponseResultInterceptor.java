@@ -1,6 +1,7 @@
 package com.maintenance.web.context.response;
 
-import com.maintenance.web.context.BaseControllerAnnotation;
+import com.maintenance.web.mvc.annotation.BaseControllerAnnotation;
+import com.maintenance.web.mvc.annotation.ResponseResult;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;

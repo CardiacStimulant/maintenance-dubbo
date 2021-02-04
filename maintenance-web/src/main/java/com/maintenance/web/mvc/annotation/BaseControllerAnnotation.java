@@ -1,6 +1,5 @@
-package com.maintenance.web.context;
+package com.maintenance.web.mvc.annotation;
 
-import com.maintenance.web.context.response.ResponseResult;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.annotation.*;
