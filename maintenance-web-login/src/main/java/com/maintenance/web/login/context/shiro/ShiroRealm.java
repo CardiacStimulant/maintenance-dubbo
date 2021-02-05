@@ -1,6 +1,5 @@
 package com.maintenance.web.login.context.shiro;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maintenance.common.dto.ResourceDto;
 import com.maintenance.common.dto.RoleDto;
@@ -60,11 +59,9 @@ public class ShiroRealm extends AuthorizingRealm {
 				throw new IncorrectCredentialsException("用户名或密码错误！");
 			}
 			// 获取roleDtos
-			String roleDtosJson = (String) jsonObject.get("roleDtos");
-			List<RoleDto> roleDtos = JSONArray.parseArray(roleDtosJson, RoleDto.class);
+			List<RoleDto> roleDtos = (List<RoleDto>) jsonObject.get("roleDtos");
 			// 获取resourceDtos
-			String resourceDtosJson = (String) jsonObject.get("resourceDtos");
-			List<ResourceDto> resourceDtos = JSONArray.parseArray(resourceDtosJson, ResourceDto.class);
+			List<ResourceDto> resourceDtos = (List<ResourceDto>) jsonObject.get("resourceDtos");
 			// 设置用户信息
 			UserInfo.setUserInfoCache(httpSession.getId(), userDto, roleDtos, resourceDtos);
 			return new SimpleAuthenticationInfo(userDto, password, getName());

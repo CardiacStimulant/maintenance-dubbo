@@ -1,9 +1,9 @@
 package com.maintenance.web.login.controller;
 
 import com.maintenance.common.utils.Encrypt;
-import com.maintenance.web.mvc.annotation.BaseControllerAnnotation;
 import com.maintenance.web.context.Result;
 import com.maintenance.web.context.UserInfo;
+import com.maintenance.web.exception.DubboManageException;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.subject.Subject;
@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@BaseControllerAnnotation
+@RestController
 public class LoginController {
 
 	/**
@@ -39,6 +39,8 @@ public class LoginController {
 			result = Result.failure("用户被禁用，请联系管理员");
 		} catch (AuthenticationException e) {
 			result = Result.failure("认证失败");
+		} catch (DubboManageException e) {
+			result = Result.failure(e.getMessage());
 		} catch (Exception e) {
 			result = Result.failure("登录失败，请联系管理员");
 		}
