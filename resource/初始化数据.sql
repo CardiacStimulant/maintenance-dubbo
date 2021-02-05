@@ -1,5 +1,5 @@
 -- 初始化用户
-INSERT INTO `base_user` (`login_account`, `password`, `job_number`, `name`, `mobile`, `email`, `comments`, `version`, `dr`, `last_modify_user`, `last_modified`, `create_user`, `create_time`) VALUES ('admin', '21232F297A57A5A743894A0E4A801FC3', '0001', '管理员', NULL, NULL, '默认生成的管理员', '0', '0', '管理员', now(), '管理员', now());
+INSERT INTO `base_user` (`login_account`, `password`, `job_number`, `name`, `mobile`, `email`, `comments`, `version`, `dr`, `last_modify_user`, `last_modified`, `create_user`, `create_time`) VALUES ('admin', 'ISMvKXpXpadDiUoOSoAfww==', '0001', '管理员', NULL, NULL, '默认生成的管理员', '0', '0', '管理员', now(), '管理员', now());
 
 -- 初始化角色
 INSERT INTO `base_role` (`name`, `code`, `comments`, `version`, `dr`, `last_modify_user`, `last_modified`, `create_user`, `create_time`) VALUES ('管理员', 'admin', '默认生成的管理员', '0', '0', '管理员', now(), '管理员', now());
