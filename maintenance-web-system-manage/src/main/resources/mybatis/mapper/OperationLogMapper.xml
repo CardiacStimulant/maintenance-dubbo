@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.maintenance.web.manage.dao.OperationLogDao">
+    <resultMap id="OperationLogMap" type="com.maintenance.web.manage.entity.OperationLog">
+        <id column="id" property="id"/>
+        <result column="business_id" property="businessId"/>
+        <result column="business_type" property="businessType"/>
+        <result column="operation_type" property="operationType"/>
+        <result column="comments" property="comments"/>
+        <result column="last_modified" property="lastModified"/>
+        <result column="last_modify_user" property="lastModifyUser"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_user" property="createUser"/>
+    </resultMap>
+
+    <sql id="Operation_Log_Column_List">
+		t.id, t.business_id, t.business_type, t.operation_type, t.comments,
+		t.last_modify_user, DATE_FORMAT(t.last_modified, '%Y-%m-%d %H:%i:%s') as last_modified,
+		t.create_user, DATE_FORMAT(t.create_time, '%Y-%m-%d %H:%i:%s') as create_time
+	</sql>
+
+    <select id="selectAllByPage" resultMap="OperationLogMap">
+        select <include refid="Operation_Log_Column_List" />
+        from base_operation_log t
+        <where>
+            <if test="condition!=null and condition.searchMap!=null">
+                <if test=" condition.searchMap.businessId !=null ">
+                    and t.business_id = #{condition.searchMap.businessId}
+                </if>
+                <if test=" condition.searchMap.businessType!=null and condition.searchMap.businessType!='' ">
+                    and t.business_type = #{condition.searchMap.businessType}
+                </if>
+                <if test=" condition.searchMap.operationType!=null and condition.searchMap.operationType!='' ">
+                    and t.operation_type = #{condition.searchMap.operationType}
+                </if>
+                <!-- 创建时间 -->
+                <if test="condition.searchMap.createTimeList != null and condition.searchMap.createTimeList.size() == 2
+                    and condition.searchMap.createTimeList[0] != null and condition.searchMap.createTimeList[1] != null">
+                    and t.create_time &gt;= #{condition.searchMap.createTimeList[0]}
+                    and t.create_time &lt;= #{condition.searchMap.createTimeList[1]}
+                </if>
+                <!-- 创建人 -->
+                <if test="condition.searchMap.createUser!=null and condition.searchMap.createUser!=''">
+                    and t.create_user like CONCAT('%', #{condition.searchMap.createUser}, '%')
+                </if>
+                <!-- 更新时间 -->
+                <if test="condition.searchMap.modifyTimeList != null and condition.searchMap.modifyTimeList.size() == 2
+                    and condition.searchMap.modifyTimeList[0] != null and condition.searchMap.modifyTimeList[1] != null">
+                    and t.last_modified &gt;= #{condition.searchMap.modifyTimeList[0]}
+                    and t.last_modified &lt;= #{condition.searchMap.modifyTimeList[1]}
+                </if>
+                <!-- 更新人 -->
+                <if test="condition.searchMap.lastModifyUser!=null and condition.searchMap.lastModifyUser!=''">
+                    and t.last_modify_user like CONCAT('%', #{condition.searchMap.lastModifyUser}, '%')
+                </if>
+            </if>
+        </where>
+        order by business_type,operation_type, last_modified desc
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into base_operation_log(
+            business_id
+            , business_type
+            , operation_type
+            , comments
+            , last_modify_user
+            , last_modified
+            , create_user
+            , create_time
+         ) values ( #{businessId}
+                  , #{businessType}
+                  , #{operationType}
+                  , #{comments}
+                  , #{lastModifyUser}
+                  , #{lastModified}
+                  , #{createUser}
+                  , #{createTime}
+         )
+    </insert>
+</mapper>

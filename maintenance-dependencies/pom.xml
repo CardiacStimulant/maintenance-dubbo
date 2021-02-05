@@ -28,6 +28,7 @@
         <shiro-spring.version>1.4.0</shiro-spring.version>
         <apollo.version>1.7.0</apollo.version>
         <apache-commons-codec.version>1.8</apache-commons-codec.version>
+        <fastjson.version>1.2.75</fastjson.version>
         <!-- 第三方插件版本号管理 end -->
         <!-- 本系统各插件统一版本管理 -->
         <maintenance.version>1.0-SNAPSHOT</maintenance.version>
@@ -67,6 +68,7 @@
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql-connector-java.version}</version>
+                <scope>runtime</scope>
             </dependency>
 
             <!-- shiro-spring -->
@@ -133,6 +135,12 @@
                 <groupId>org.apache.directory.studio</groupId>
                 <artifactId>org.apache.commons.codec</artifactId>
                 <version>${apache-commons-codec.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
             </dependency>
             <!-- 第三方插件 end -->
         </dependencies>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.maintenance.web.manage.dao.ResourceDao">
+    <resultMap id="ResourceMap" type="com.maintenance.web.manage.entity.Resource">
+        <id column="id" javaType="java.lang.Long" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="owner" property="owner"/>
+        <result column="url" property="url"/>
+        <result column="key" property="key"/>
+        <result column="comments" property="comments"/>
+        <result column="version" property="version"/>
+        <result column="dr" property="dr"/>
+        <result column="last_modified" property="lastModified"/>
+        <result column="last_modify_user" property="lastModifyUser"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_user" property="createUser"/>
+    </resultMap>
+
+    <sql id="Resource_Column_List">
+		t.id, t.`name`, t.`type`, t.`owner`, t.`url`, t.`key`, t.comments, t.`version`, t.dr,
+		t.last_modify_user, DATE_FORMAT(t.last_modified, '%Y-%m-%d %H:%i:%s') as last_modified,
+		t.create_user, DATE_FORMAT(t.create_time, '%Y-%m-%d %H:%i:%s') as create_time
+	</sql>
+
+    <select id="selectAllByPage" resultMap="ResourceMap">
+        SELECT <include refid="Resource_Column_List" />
+        FROM base_resource t
+        <if test="condition!=null and condition.searchMap!=null">
+            <if test="condition.searchMap.searchConfig!=null and condition.searchMap.searchConfig!=''
+                    and condition.searchMap.roleId!=null and condition.searchMap.roleId>0 ">
+                <!-- 查询待配置/已配置时使用的条件 -->
+                <choose>
+                    <!-- 查询待配置 -->
+                    <when test="condition.searchMap.searchConfig == 'wait'">
+                        left join base_role_resource br on (br.resource_id=t.id and br.role_id=#{condition.searchMap.roleId})
+                        left join base_role r on (r.id=br.role_id)
+                    </when>
+                    <!-- 查询已配置 -->
+                    <when test="condition.searchMap.searchConfig == 'configured'">
+                        join base_role_resource br on (br.resource_id=t.id and br.role_id=#{condition.searchMap.roleId})
+                        join base_role r on (r.id=br.role_id)
+                    </when>
+                </choose>
+            </if>
+        </if>
+        where t.dr = 0
+        <if test="condition!=null and condition.searchMap!=null">
+            <if test="condition.searchMap.name!=null and condition.searchMap.name!=''">
+                and t.`name` like CONCAT('%',#{condition.searchMap.name},'%')
+            </if>
+            <if test="condition.searchMap.type!=null and condition.searchMap.type!=''">
+                and t.`type` = #{condition.searchMap.type}
+            </if>
+            <if test="condition.searchMap.owner!=null and condition.searchMap.owner!=''">
+                and t.`owner` = #{condition.searchMap.owner}
+            </if>
+            <if test="condition.searchMap.key!=null and condition.searchMap.key!=''">
+                and t.`key` like CONCAT('%',#{condition.searchMap.key},'%')
+            </if>
+            <!-- 创建时间 -->
+            <if test="condition.searchMap.createTimeList != null and condition.searchMap.createTimeList.size() == 2
+                    and condition.searchMap.createTimeList[0] != null and condition.searchMap.createTimeList[1] != null">
+                and t.create_time &gt;= #{condition.searchMap.createTimeList[0]}
+                and t.create_time &lt;= #{condition.searchMap.createTimeList[1]}
+            </if>
+            <!-- 创建人 -->
+            <if test="condition.searchMap.createUser!=null and condition.searchMap.createUser!=''">
+                and t.create_user like CONCAT('%', #{condition.searchMap.createUser}, '%')
+            </if>
+            <!-- 更新时间 -->
+            <if test="condition.searchMap.modifyTimeList != null and condition.searchMap.modifyTimeList.size() == 2
+                    and condition.searchMap.modifyTimeList[0] != null and condition.searchMap.modifyTimeList[1] != null">
+                and t.last_modified &gt;= #{condition.searchMap.modifyTimeList[0]}
+                and t.last_modified &lt;= #{condition.searchMap.modifyTimeList[1]}
+            </if>
+            <!-- 更新人 -->
+            <if test="condition.searchMap.lastModifyUser!=null and condition.searchMap.lastModifyUser!=''">
+                and t.last_modify_user like CONCAT('%', #{condition.searchMap.lastModifyUser}, '%')
+            </if>
+            <if test="condition.searchMap.searchConfig == 'wait'">
+                and (br.id is null or br.id='')
+            </if>
+        </if>
+        order by t.id
+    </select>
+
+    <select id="queryList" resultMap="ResourceMap">
+        select <include refid="Resource_Column_List" />
+        from base_resource t
+        <if test="condition!=null and condition.searchMap!=null">
+            <if test="condition.searchMap.searchConfig!=null and condition.searchMap.searchConfig!=''
+                    and condition.searchMap.roleId!=null and condition.searchMap.roleId>0 ">
+                <!-- 查询待配置/已配置时使用的条件 -->
+                <choose>
+                    <!-- 查询待配置 -->
+                    <when test="condition.searchMap.searchConfig == 'wait'">
+                        left join base_role_resource br on (br.resource_id=t.id and br.role_id=#{condition.searchMap.roleId})
+                        left join base_role r on (r.id=br.role_id)
+                    </when>
+                    <!-- 查询已配置 -->
+                    <when test="condition.searchMap.searchConfig == 'configured'">
+                        join base_role_resource br on (br.resource_id=t.id and br.role_id=#{condition.searchMap.roleId})
+                        join base_role r on (r.id=br.role_id)
+                    </when>
+                </choose>
+            </if>
+
+            <if test="condition.searchMap.roleList!=null and condition.searchMap.roleList.size()>0">
+                join base_role_resource br on (br.resource_id=t.id
+                    and br.role_id in
+                    <foreach collection="condition.searchMap.roleList" item="item" index="index" separator="," open="(" close=")">
+                        #{item.id}
+                    </foreach>
+                )
+                join base_role r on (r.id=br.role_id)
+            </if>
+        </if>
+        where t.dr = 0
+        <if test="condition!=null and condition.searchMap!=null">
+            <if test="condition.searchMap.searchConfig == 'wait' and condition.searchMap.roleId!=null and condition.searchMap.roleId>0 ">
+                and (br.id is null or br.id='')
+            </if>
+        </if>
+        order by t.id
+    </select>
+
+    <select id="findById" resultMap="ResourceMap">
+        select <include refid="Resource_Column_List" />
+        from base_resource t
+        where t.id = #{id}
+    </select>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into base_resource(
+            `name`,
+            `type`,
+            `owner`,
+            `url`,
+            `key`,
+            comments,
+            last_modify_user,
+            last_modified,
+            create_user,
+            create_time
+        )
+        values (
+            #{name},
+            #{type},
+            #{owner},
+            #{url},
+            #{key},
+            #{comments},
+            #{lastModifyUser},
+            #{lastModified},
+            #{createUser},
+            #{createTime}
+        )
+    </insert>
+
+    <update id="update">
+        update base_resource
+        set
+        <if test="name!=null and name!=''">
+            `name`=#{name},
+        </if>
+        <if test="type!=null and type!=''">
+            `type`=#{type},
+        </if>
+        <if test="owner!=null and owner!=''">
+            `owner`=#{owner},
+        </if>
+            `url`=#{url},
+            comments=#{comments},
+            last_modify_user=#{lastModifyUser},
+            last_modified=#{lastModified},
+            `version` = #{version} + 1
+        where id=#{id}
+        and `version` = #{version}
+    </update>
+
+    <select id="checkResourceKeyExists" resultType="java.lang.Integer">
+        select count(*)
+        from base_resource
+        where dr = 0
+        and `key` = #{key}
+    </select>
+
+    <update id="delete">
+        update base_resource
+        set dr=1,
+            `version` = #{version} + 1
+        where id=#{id}
+        and `version` = #{version}
+    </update>
+</mapper>

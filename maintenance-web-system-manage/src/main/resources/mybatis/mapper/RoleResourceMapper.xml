@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.maintenance.web.manage.dao.RoleResourceDao">
+    <resultMap id="RoleResourceMap" type="com.maintenance.web.manage.entity.RoleResource">
+        <id column="id" javaType="java.lang.Long" property="id"/>
+        <result column="role_id" property="roleId"/>
+        <result column="resource_id" property="resourceId"/>
+        <result column="last_modified" property="lastModified"/>
+        <result column="last_modify_user" property="lastModifyUser"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_user" property="createUser"/>
+    </resultMap>
+
+    <sql id="Role_Resource_Column_List">
+		t.role_id, t.resource_id,
+		t.last_modify_user, DATE_FORMAT(t.last_modified, '%Y-%m-%d %H:%i:%s') as last_modified,
+		t.create_user, DATE_FORMAT(t.create_time, '%Y-%m-%d %H:%i:%s') as create_time
+	</sql>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into base_role_resource(
+            role_id,
+            resource_id,
+            last_modify_user,
+            last_modified,
+            create_user,
+            create_time
+        )
+        values (
+            #{roleId},
+            #{resourceId},
+            #{lastModifyUser},
+            #{lastModified},
+            #{createUser},
+            #{createTime}
+        )
+    </insert>
+
+    <select id="checkRoleResourceExists" resultType="java.lang.Integer">
+        select count(t.id)
+        from base_role_resource t
+        where t.role_id=#{roleId}
+        and t.resource_id=#{resourceId}
+    </select>
+
+    <delete id="removeRoleResource">
+        delete from base_role_resource
+        where role_id=#{roleId}
+        and resource_id=#{resourceId}
+    </delete>
+
+    <delete id="removeRoleResourceByResourceId">
+        delete from base_role_resource
+        where resource_id=#{resourceId}
+    </delete>
+</mapper>

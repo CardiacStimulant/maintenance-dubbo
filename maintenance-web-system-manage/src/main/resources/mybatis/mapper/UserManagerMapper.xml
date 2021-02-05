@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.maintenance.web.manage.dao.UserManagerDao">
+    <resultMap id="UserMap" type="com.maintenance.web.manage.entity.User">
+        <id column="id" javaType="java.lang.Long" property="id"/>
+        <result column="login_account" property="loginAccount"/>
+        <result column="password" property="password"/>
+        <result column="job_number" property="jobNumber"/>
+        <result column="name" property="name"/>
+        <result column="mobile" property="mobile"/>
+        <result column="email" property="email"/>
+        <result column="comments" property="comments"/>
+        <result column="version" property="version"/>
+        <result column="dr" property="dr"/>
+        <result column="last_modified" property="lastModified"/>
+        <result column="last_modify_user" property="lastModifyUser"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_user" property="createUser"/>
+    </resultMap>
+
+    <resultMap id="RoleMap" type="com.maintenance.web.manage.entity.Role">
+        <id column="id" javaType="java.lang.Long" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="comments" property="comments"/>
+        <result column="version" property="version"/>
+        <result column="dr" property="dr"/>
+        <result column="last_modified" property="lastModified"/>
+        <result column="last_modify_user" property="lastModifyUser"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_user" property="createUser"/>
+    </resultMap>
+
+    <resultMap id="UserRoleMap" type="com.maintenance.web.manage.entity.UserRole">
+        <id column="id" javaType="java.lang.Long" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="role_id" property="roleId"/>
+        <result column="dr" property="dr"/>
+        <result column="last_modified" property="lastModified"/>
+        <result column="last_modify_user" property="lastModifyUser"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_user" property="createUser"/>
+    </resultMap>
+
+    <resultMap id="UserRoleVoMap" type="com.maintenance.web.manage.vo.UserRoleVo">
+        <id column="id" javaType="java.lang.Long" property="id"/>
+        <result column="login_account" property="loginAccount"/>
+        <result column="password" property="password"/>
+        <result column="job_number" property="jobNumber"/>
+        <result column="name" property="name"/>
+        <result column="mobile" property="mobile"/>
+        <result column="email" property="email"/>
+        <result column="comments" property="comments"/>
+        <result column="version" property="version"/>
+        <result column="dr" property="dr"/>
+        <result column="last_modified" property="lastModified"/>
+        <result column="last_modify_user" property="lastModifyUser"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_user" property="createUser"/>
+        <collection property="roleList" ofType="com.maintenance.web.manage.entity.Role" select="selectRole" column="{userId=id}" fetchType="lazy" />
+    </resultMap>
+
+    <sql id="User_Column_List">
+		t.id, t.login_account, t.`password`, t.job_number, t.`name`, t.mobile, t.email, t.comments, t.`version`, t.dr,
+		t.last_modify_user, DATE_FORMAT(t.last_modified, '%Y-%m-%d %H:%i:%s') as last_modified,
+		t.create_user, DATE_FORMAT(t.create_time, '%Y-%m-%d %H:%i:%s') as create_time
+	</sql>
+
+    <sql id="Role_Column_List">
+		r.id, r.`name`, r.`code`, r.comments, r.`version`, r.dr,
+		r.last_modify_user, DATE_FORMAT(r.last_modified, '%Y-%m-%d %H:%i:%s') as last_modified,
+		r.create_user, DATE_FORMAT(r.create_time, '%Y-%m-%d %H:%i:%s') as create_time
+	</sql>
+
+    <sql id="User_Role_Column_List">
+		bur.id, bur.user_id, bur.role_id,
+		bur.last_modify_user, DATE_FORMAT(bur.last_modified, '%Y-%m-%d %H:%i:%s') as last_modified,
+		bur.create_user, DATE_FORMAT(bur.create_time, '%Y-%m-%d %H:%i:%s') as create_time
+	</sql>
+
+    <select id="getUserByLoginAccount" resultMap="UserMap">
+        select <include refid="User_Column_List" />
+        from base_user t
+        where t.dr = 0
+        and t.login_account = #{loginAccount}
+    </select>
+
+    <select id="queryPage" resultMap="UserRoleVoMap">
+        SELECT <include refid="User_Column_List" />
+        FROM base_user t
+        where t.dr = 0
+        <if test="condition!=null and condition.searchMap!=null">
+            <if test="condition.searchMap.loginAccount!=null and condition.searchMap.loginAccount!=''">
+                and t.login_account like CONCAT('%',#{condition.searchMap.loginAccount},'%')
+            </if>
+            <if test="condition.searchMap.jobNumber!=null and condition.searchMap.jobNumber!=''">
+                and t.job_number like CONCAT('%',#{condition.searchMap.jobNumber},'%')
+            </if>
+            <if test="condition.searchMap.name!=null and condition.searchMap.name!=''">
+                and t.`name` like CONCAT('%',#{condition.searchMap.name},'%')
+            </if>
+            <if test="condition.searchMap.mobile!=null and condition.searchMap.mobile!=''">
+                and t.mobile like CONCAT('%',#{condition.searchMap.mobile},'%')
+            </if>
+            <if test="condition.searchMap.email!=null and condition.searchMap.email!=''">
+                and t.email like CONCAT('%',#{condition.searchMap.email},'%')
+            </if>
+            <if test="condition.searchMap.comments!=null and condition.searchMap.comments!=''">
+                and t.comments like CONCAT('%',#{condition.searchMap.comments},'%')
+            </if>
+            <if test="condition.searchMap.roleName!=null and condition.searchMap.roleName!=''">
+                and t.id in (
+                    select bur.user_id
+                    from base_role r
+                    join base_user_role bur
+                    on (r.id = bur.role_id and bur.dr=0)
+                    where r.name like CONCAT('%',#{condition.searchMap.roleName},'%')
+                )
+            </if>
+            <!-- 创建时间 -->
+            <if test="condition.searchMap.createTimeList != null and condition.searchMap.createTimeList.size() == 2
+                    and condition.searchMap.createTimeList[0] != null and condition.searchMap.createTimeList[1] != null">
+                and t.create_time &gt;= #{condition.searchMap.createTimeList[0]}
+                and t.create_time &lt;= #{condition.searchMap.createTimeList[1]}
+            </if>
+            <!-- 创建人 -->
+            <if test="condition.searchMap.createUser!=null and condition.searchMap.createUser!=''">
+                and t.create_user like CONCAT('%', #{condition.searchMap.createUser}, '%')
+            </if>
+            <!-- 更新时间 -->
+            <if test="condition.searchMap.modifyTimeList != null and condition.searchMap.modifyTimeList.size() == 2
+                    and condition.searchMap.modifyTimeList[0] != null and condition.searchMap.modifyTimeList[1] != null">
+                and t.last_modified &gt;= #{condition.searchMap.modifyTimeList[0]}
+                and t.last_modified &lt;= #{condition.searchMap.modifyTimeList[1]}
+            </if>
+            <!-- 更新人 -->
+            <if test="condition.searchMap.lastModifyUser!=null and condition.searchMap.lastModifyUser!=''">
+                and t.last_modify_user like CONCAT('%', #{condition.searchMap.lastModifyUser}, '%')
+            </if>
+        </if>
+        order by t.last_modified desc
+    </select>
+
+    <select id="selectRole" resultMap="RoleMap">
+        select <include refid="Role_Column_List" />
+        from base_role r
+        join base_user_role bur
+        on (r.id = bur.role_id)
+        where r.dr = 0
+        <if test="userId != null">
+            and bur.user_id = #{userId}
+        </if>
+    </select>
+
+    <select id="findById" resultMap="UserMap">
+        select <include refid="User_Column_List" />
+        from base_user t
+        where t.id=#{userId}
+    </select>
+
+    <select id="getUserByAccount" resultMap="UserMap">
+        select <include refid="User_Column_List" />
+        from base_user t
+        where t.login_account=#{account}
+    </select>
+
+    <select id="checkUserLoginAccountExists" resultType="java.lang.Integer">
+        select count(*)
+        from base_user t
+        where t.dr = 0
+        and t.login_account = #{loginAccount}
+    </select>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into base_user(
+            login_account,
+            password,
+            job_number,
+            `name`,
+            mobile,
+            email,
+            comments,
+            last_modify_user,
+            last_modified,
+            create_user,
+            create_time
+        )
+        values (
+            #{loginAccount},
+            #{password},
+            #{jobNumber},
+            #{name},
+            #{mobile},
+            #{email},
+            #{comments},
+            #{lastModifyUser},
+            #{lastModified},
+            #{createUser},
+            #{createTime}
+        )
+    </insert>
+
+    <insert id="addUserRoleRelation" keyProperty="id" useGeneratedKeys="true">
+        insert into base_user_role(
+            user_id,
+            role_id,
+            last_modify_user,
+            last_modified,
+            create_user,
+            create_time
+        )
+        values (
+            #{userId},
+            #{roleId},
+            #{lastModifyUser},
+            #{lastModified},
+            #{createUser},
+            #{createTime}
+        )
+    </insert>
+
+    <update id="delete">
+        update base_user
+        set dr = 1,
+            `version`= `version` + 1
+        WHERE id=#{id}
+        and `version`=#{version}
+    </update>
+
+    <select id="queryUserRoleList" resultMap="UserRoleMap">
+        select <include refid="User_Role_Column_List" />
+        from base_user_role bur
+        where bur.user_id = #{userId}
+    </select>
+
+    <update id="deleteUserRoleByUserId">
+        update base_user_role
+        set dr = 1
+        where dr = 0
+        and user_id = #{userId}
+    </update>
+
+    <update id="deleteUserRoleByUserIdAndRoleIds">
+        update base_user_role
+        set dr = 1
+        where dr = 0
+        and user_id = #{userId}
+        <if test="roleIds!=null and roleIds.size()>0">
+            and role_id in
+            <foreach collection="roleIds" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </update>
+
+    <update id="update">
+        update base_user
+        set login_account = #{loginAccount},
+            job_number = #{jobNumber},
+            `name` = #{name},
+            mobile = #{mobile},
+            email = #{email},
+            comments = #{comments},
+            last_modify_user=#{lastModifyUser},
+            last_modified=#{lastModified},
+            `version` = version+1
+        where id=#{id}
+        and `version`=#{version}
+    </update>
+
+    <update id="updatePassword">
+        update base_user
+        set `password` = #{password}
+        where id=#{id}
+        and `version`=#{version}
+    </update>
+</mapper>

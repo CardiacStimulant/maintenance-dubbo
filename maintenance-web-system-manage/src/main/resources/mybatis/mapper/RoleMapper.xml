@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.maintenance.web.manage.dao.RoleDao">
+    <resultMap id="RoleMap" type="com.maintenance.web.manage.entity.Role">
+        <id column="id" javaType="java.lang.Long" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="comments" property="comments"/>
+        <result column="version" property="version"/>
+        <result column="dr" property="dr"/>
+        <result column="last_modified" property="lastModified"/>
+        <result column="last_modify_user" property="lastModifyUser"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_user" property="createUser"/>
+    </resultMap>
+
+    <sql id="Role_Column_List">
+		r.id, r.`name`, r.`code`, r.comments, r.`version`, r.dr,
+		r.last_modify_user, DATE_FORMAT(r.last_modified, '%Y-%m-%d %H:%i:%s') as last_modified,
+		r.create_user, DATE_FORMAT(r.create_time, '%Y-%m-%d %H:%i:%s') as create_time
+	</sql>
+
+    <select id="selectAllByPage" resultMap="RoleMap">
+        SELECT <include refid="Role_Column_List" />
+        FROM base_role r
+        where r.dr = 0
+        <if test="condition!=null and condition.searchMap!=null">
+            <if test="condition.searchMap.name!=null and condition.searchMap.name!=''">
+                and r.`name` like CONCAT('%',#{condition.searchMap.name},'%')
+            </if>
+            <if test="condition.searchMap.code!=null and condition.searchMap.code!=''">
+                and r.`code` like CONCAT('%',#{condition.searchMap.code},'%')
+            </if>
+            <if test="condition.searchMap.comments!=null and condition.searchMap.comments!=''">
+                and r.comments like CONCAT('%',#{condition.searchMap.comments},'%')
+            </if>
+            <!-- 创建时间 -->
+            <if test="condition.searchMap.createTimeList != null and condition.searchMap.createTimeList.size() == 2
+                    and condition.searchMap.createTimeList[0] != null and condition.searchMap.createTimeList[1] != null">
+                and r.create_time &gt;= #{condition.searchMap.createTimeList[0]}
+                and r.create_time &lt;= #{condition.searchMap.createTimeList[1]}
+            </if>
+            <!-- 创建人 -->
+            <if test="condition.searchMap.createUser!=null and condition.searchMap.createUser!=''">
+                and r.create_user like CONCAT('%', #{condition.searchMap.createUser}, '%')
+            </if>
+            <!-- 更新时间 -->
+            <if test="condition.searchMap.modifyTimeList != null and condition.searchMap.modifyTimeList.size() == 2
+                    and condition.searchMap.modifyTimeList[0] != null and condition.searchMap.modifyTimeList[1] != null">
+                and r.last_modified &gt;= #{condition.searchMap.modifyTimeList[0]}
+                and r.last_modified &lt;= #{condition.searchMap.modifyTimeList[1]}
+            </if>
+            <!-- 更新人 -->
+            <if test="condition.searchMap.lastModifyUser!=null and condition.searchMap.lastModifyUser!=''">
+                and r.last_modify_user like CONCAT('%', #{condition.searchMap.lastModifyUser}, '%')
+            </if>
+        </if>
+        order by r.last_modified desc
+    </select>
+
+    <select id="queryList" resultMap="RoleMap">
+        select <include refid="Role_Column_List" />
+        from base_role r
+        <if test="condition!=null and condition.searchMap!=null">
+            <if test="condition.searchMap.userId!=null and condition.searchMap.userId>0">
+                join base_user_role bur
+                on (r.id = bur.role_id)
+            </if>
+        </if>
+        where r.dr = 0
+        <if test="condition!=null and condition.searchMap!=null">
+            <if test="condition.searchMap.userId!=null and condition.searchMap.userId>0">
+                and bur.user_id = #{condition.searchMap.userId}
+            </if>
+        </if>
+    </select>
+
+    <select id="getRoleById" resultMap="RoleMap">
+        select <include refid="Role_Column_List" />
+        from base_role r
+        where r.id = #{id}
+    </select>
+
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into base_role(
+            `name`,
+            `code`,
+            comments,
+            last_modify_user,
+            last_modified,
+            create_user,
+            create_time
+        )
+        values (
+            #{name},
+            #{code},
+            #{comments},
+            #{lastModifyUser},
+            #{lastModified},
+            #{createUser},
+            #{createTime}
+        )
+    </insert>
+
+    <update id="update">
+        update base_role
+        set
+        <if test="name!=null and name!=''">
+            `name`=#{name},
+        </if>
+        <if test="code!=null and code!=''">
+            `code`=#{code},
+        </if>
+            comments=#{comments},
+            last_modify_user=#{lastModifyUser},
+            last_modified=#{lastModified},
+            `version` = #{version} + 1
+        where id=#{id}
+        and `version` = #{version}
+    </update>
+
+    <select id="checkRoleCodeExists" resultType="java.lang.Integer">
+        select count(*)
+        from base_role
+        where dr = 0
+        and `code` = #{code}
+    </select>
+
+    <update id="delete">
+        update base_role
+        set dr=1,
+            `version` = #{version} + 1
+        where id=#{id}
+        and `version` = #{version}
+    </update>
+</mapper>
